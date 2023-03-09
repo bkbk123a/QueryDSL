@@ -12,6 +12,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
+import study.querydsl.dto.QMemberDto;
 import study.querydsl.dto.UserDto;
 import study.querydsl.entity.Member;
 import study.querydsl.entity.QMember;
@@ -531,7 +532,6 @@ public class QuerydslBasicTest {
     }
 
     @Test
-    // 기본생성자 필요함
     public void findUserDto()
     {
         List<UserDto> result = queryFactory
@@ -544,6 +544,21 @@ public class QuerydslBasicTest {
         for(UserDto userDto : result)
         {
             System.out.println("UserDto = " + userDto);
+        }
+    }
+
+    @Test
+    // 생성자 활용하는 방법이다. @QueryProjection 추가하면 됨
+    public void findDtoByQueryProjection()
+    {   //Q파일 생성된다.
+        List<MemberDto> result = queryFactory
+                .select(new QMemberDto(member.username, member.age))
+                .from(member)
+                .fetch();
+
+        for(MemberDto memberDto : result)
+        {
+            System.out.println("UserDto = " + memberDto);
         }
     }
 }
