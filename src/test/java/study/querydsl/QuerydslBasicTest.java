@@ -12,6 +12,7 @@ import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.annotation.Commit;
 import org.springframework.transaction.annotation.Transactional;
 import study.querydsl.dto.MemberDto;
 import study.querydsl.dto.QMemberDto;
@@ -600,4 +601,45 @@ public class QuerydslBasicTest {
     private BooleanExpression ageEq(Integer ageCond) {
         return ageCond != null ? member.age.eq(ageCond) : null;
     }
+
+    @Test
+    public void bulkUpdate(){
+        // 모든 벌크 연산은 1차 캐시 무시하고 바로 DB에 값 변경 -> 값 안맞음.
+        // em.flush();
+        // em.clear();
+        long count = queryFactory
+                .update(member)
+                .set(member.username, "비회원")
+                .where(member.age.lt(28))
+                .execute();
+
+        em.flush();
+        em.clear();
+
+        List<Member> result = queryFactory
+                .selectFrom(member)
+                .fetch();
+
+        for (Member member : result) {
+            System.out.println("member = " + member);
+        }
+    }
+
+    @Test
+    public void bulkAdd(){
+        // min없어서 빼고싶으면 -1
+        long count = queryFactory
+                .update(member)
+                .set(member.age, member.age.add(1))
+                .execute();
+    }
+
+    @Test
+    public void bulkDelete(){
+        long count = queryFactory
+                .delete(member)
+                .where(member.age.gt(18))
+                .execute();
+    }
+
 }
