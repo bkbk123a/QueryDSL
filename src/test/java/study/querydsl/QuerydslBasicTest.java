@@ -1,4 +1,5 @@
 package study.querydsl;
+import com.querydsl.core.BooleanBuilder;
 import com.querydsl.core.QueryResults;
 import com.querydsl.core.Tuple;
 import com.querydsl.core.types.Projections;
@@ -35,6 +36,7 @@ public class QuerydslBasicTest {
     @PersistenceContext
     EntityManager em;
     JPAQueryFactory queryFactory;
+
     @BeforeEach
     public void before() {
         queryFactory = new JPAQueryFactory(em);
@@ -89,9 +91,9 @@ public class QuerydslBasicTest {
                 .fetchOne();
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
-    
+
     @Test
-    public void search(){
+    public void search() {
         Member findMember = queryFactory
                 .selectFrom(member)
                 .where(member.username.eq("member1")
@@ -100,6 +102,7 @@ public class QuerydslBasicTest {
 
         assertThat(findMember.getUsername()).isEqualTo("member1");
     }
+
     // 위의 search랑 같음. 이런식으로 써도 됨(and대신 끊어가기).
     @Test
     public void searchAndParam() {
@@ -112,34 +115,34 @@ public class QuerydslBasicTest {
     }
 
     @Test
-    public void testFetch(){
-    //        fetch() : 리스트 조회, 데이터 없으면 빈 리스트 반환
-    //        fetchOne() : 단 건 조회
-    //        결과가 없으면 : null
-    //        결과가 둘 이상이면 : com.querydsl.core.NonUniqueResultException
-    //        fetchFirst() : limit(1).fetchOne()
-    //        fetchResults() : 페이징 정보 포함, total count 쿼리 추가 실행
-    //        fetchCount() : count 쿼리로 변경해서 count 수 조회
-    // List
-    List<Member> fetch = queryFactory
-            .selectFrom(member)
-            .fetch();
-    //단 건
-    Member findMember1 = queryFactory
-            .selectFrom(member)
-            .fetchOne();
-    //처음 한 건 조회
-    Member findMember2 = queryFactory
-            .selectFrom(member)
-            .fetchFirst();
-    //페이징에서 사용
-    QueryResults<Member> results = queryFactory
-            .selectFrom(member)
-            .fetchResults();
-    //count 쿼리로 변경
-    long count = queryFactory
-            .selectFrom(member)
-            .fetchCount();
+    public void testFetch() {
+        //        fetch() : 리스트 조회, 데이터 없으면 빈 리스트 반환
+        //        fetchOne() : 단 건 조회
+        //        결과가 없으면 : null
+        //        결과가 둘 이상이면 : com.querydsl.core.NonUniqueResultException
+        //        fetchFirst() : limit(1).fetchOne()
+        //        fetchResults() : 페이징 정보 포함, total count 쿼리 추가 실행
+        //        fetchCount() : count 쿼리로 변경해서 count 수 조회
+        // List
+        List<Member> fetch = queryFactory
+                .selectFrom(member)
+                .fetch();
+        //단 건
+        Member findMember1 = queryFactory
+                .selectFrom(member)
+                .fetchOne();
+        //처음 한 건 조회
+        Member findMember2 = queryFactory
+                .selectFrom(member)
+                .fetchFirst();
+        //페이징에서 사용
+        QueryResults<Member> results = queryFactory
+                .selectFrom(member)
+                .fetchResults();
+        //count 쿼리로 변경
+        long count = queryFactory
+                .selectFrom(member)
+                .fetchCount();
     }
 
     /**
@@ -277,7 +280,7 @@ public class QuerydslBasicTest {
      * 예) 회원과 팀을 조인하면서, 팀 이름이 teamA인 팀만 조인, 회원은 모두 조회
      * JPQL: SELECT m, t FROM Member m LEFT JOIN m.team t on t.name = 'teamA'
      * SQL: SELECT m.*, t.* FROM Member m LEFT JOIN Team t ON m.TEAM_ID=t.id and
-     t.name='teamA'
+     * t.name='teamA'
      */
     @Test
     public void join_on_filtering() throws Exception {
@@ -314,6 +317,7 @@ public class QuerydslBasicTest {
     // 페치조인 미적용
     @PersistenceUnit
     EntityManagerFactory emf;
+
     @Test
     public void fetchJoinNo() throws Exception {
         em.flush();
@@ -373,8 +377,9 @@ public class QuerydslBasicTest {
                 ))
                 .fetch();
         assertThat(result).extracting("age")
-                .containsExactly(30,40);
+                .containsExactly(30, 40);
     }
+
     /**
      * 서브쿼리 여러 건 처리, in 사용
      */
@@ -441,8 +446,7 @@ public class QuerydslBasicTest {
     }
 
     @Test
-    public void simpleProjection()
-    {
+    public void simpleProjection() {
         List<String> result = queryFactory
                 .select(member.username)
                 .from(member)
@@ -450,8 +454,7 @@ public class QuerydslBasicTest {
     }
 
     @Test
-    public void tupleProjection()
-    {
+    public void tupleProjection() {
         List<Tuple> result = queryFactory
                 .select(member.username, member.age)
                 .from(member)
@@ -467,23 +470,20 @@ public class QuerydslBasicTest {
 
     @Test
     //순수 JPA에서 DTO를 조회할 때는 new 명령어를 사용해야함
-    public void findDtoByJPQL()
-    {
+    public void findDtoByJPQL() {
         List<MemberDto> result = em.createQuery(
                         "select new study.querydsl.dto.MemberDto(m.username, m.age) " +
                                 "from Member m", MemberDto.class)
                 .getResultList();
-        
-        for(MemberDto memberDto : result)
-        {
+
+        for (MemberDto memberDto : result) {
             System.out.println("memberDto = " + memberDto);
         }
     }
 
     @Test
     // 기본생성자 필요함
-    public void findDtoBySetter()
-    {
+    public void findDtoBySetter() {
         List<MemberDto> result = queryFactory
                 .select(Projections.bean(MemberDto.class,
                         member.username,
@@ -491,16 +491,14 @@ public class QuerydslBasicTest {
                 .from(member)
                 .fetch();
 
-        for(MemberDto memberDto : result)
-        {
+        for (MemberDto memberDto : result) {
             System.out.println("memberDto = " + memberDto);
         }
     }
 
     @Test
     // 기본생성자 필요함, 필드명이 맞아야함
-    public void findDtoByField()
-    {
+    public void findDtoByField() {
         List<MemberDto> result = queryFactory
                 .select(Projections.fields(MemberDto.class,
                         member.username,
@@ -508,16 +506,14 @@ public class QuerydslBasicTest {
                 .from(member)
                 .fetch();
 
-        for(MemberDto memberDto : result)
-        {
+        for (MemberDto memberDto : result) {
             System.out.println("memberDto = " + memberDto);
         }
     }
 
     @Test
     // 기본생성자 필요함
-    public void findDtoByConstructor()
-    {
+    public void findDtoByConstructor() {
         List<MemberDto> result = queryFactory
                 .select(Projections.constructor(MemberDto.class,
                         member.username,
@@ -525,15 +521,13 @@ public class QuerydslBasicTest {
                 .from(member)
                 .fetch();
 
-        for(MemberDto memberDto : result)
-        {
+        for (MemberDto memberDto : result) {
             System.out.println("memberDto = " + memberDto);
         }
     }
 
     @Test
-    public void findUserDto()
-    {
+    public void findUserDto() {
         List<UserDto> result = queryFactory
                 .select(Projections.constructor(UserDto.class,
                         member.username.as("name"),
@@ -541,24 +535,44 @@ public class QuerydslBasicTest {
                 .from(member)
                 .fetch();
 
-        for(UserDto userDto : result)
-        {
+        for (UserDto userDto : result) {
             System.out.println("UserDto = " + userDto);
         }
     }
 
     @Test
     // 생성자 활용하는 방법이다. @QueryProjection 추가하면 됨
-    public void findDtoByQueryProjection()
-    {   //Q파일 생성된다.
+    public void findDtoByQueryProjection() {   //Q파일 생성된다.
         List<MemberDto> result = queryFactory
                 .select(new QMemberDto(member.username, member.age))
                 .from(member)
                 .fetch();
 
-        for(MemberDto memberDto : result)
-        {
+        for (MemberDto memberDto : result) {
             System.out.println("UserDto = " + memberDto);
         }
+    }
+
+    @Test
+    public void 동적쿼리_BooleanBuilder() throws Exception {
+        String usernameParam = "member1";
+        Integer ageParam = 10;
+        List<Member> result = searchMember1(usernameParam, ageParam);
+        Assertions.assertThat(result.size()).isEqualTo(1);
+    }
+
+    private List<Member> searchMember1(String usernameCond, Integer ageCond) {
+        BooleanBuilder builder = new BooleanBuilder();
+        if (usernameCond != null) {
+            builder.and(member.username.eq(usernameCond));
+        }
+        if (ageCond != null) {
+            builder.and(member.age.eq(ageCond));
+        }
+        return queryFactory
+                .selectFrom(member)
+                .where(builder)
+                .fetch();
+
     }
 }
